@@ -92,6 +92,21 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> accessDeniedException(
+            AccessDeniedException e,
+            HttpServletRequest request
+    ) {
+        log.warn(" Access denied : {}", e.getMessage());
+        return buildError(
+                "ACCESS_DENIED",
+                e.getMessage(),
+                List.of(),
+                HttpStatus.FORBIDDEN,
+                request
+        );
+    }
+
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<ErrorResponse> invalidPasswordException(
             InvalidPasswordException e,

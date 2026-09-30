@@ -54,15 +54,37 @@ public class JwtService {
 
     }
 
-    public boolean isTokenValid(String jwtToken) {
+   /* public boolean isTokenValid(String jwtToken) {
         try {
             Jwts.parser()
                     .verifyWith(secretKey)
                     .build()
                     .parseSignedClaims(jwtToken);
-        } catch (RuntimeException e){
+
+            return true;
+
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
-        return true;
+    }           */
+   public boolean isTokenValid(String jwtToken) {
+       try {
+           Jwts.parser()
+                   .verifyWith(secretKey)
+                   .build()
+                   .parseSignedClaims(jwtToken);
+
+           System.out.println("JWT VALID");
+
+           return true;
+
+       } catch (Exception e) {
+           System.out.println("JWT INVALID: " + e.getClass().getName());
+           System.out.println("JWT ERROR: " + e.getMessage());
+           e.printStackTrace();
+
+           return false;
+       }
+   }
     }
-}

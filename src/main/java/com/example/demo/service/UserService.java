@@ -5,6 +5,8 @@ import com.example.demo.dto.user.UserCreateRequest;
 import com.example.demo.dto.user.UserResponse;
 import com.example.demo.dto.user.UserUpdateRequest;
 import com.example.demo.entity.user.User;
+import com.example.demo.entity.user.UserRole;
+import com.example.demo.exception.AccessDeniedException;
 import com.example.demo.exception.InvalidPasswordException;
 import com.example.demo.exception.UserAlreadyExistsException;
 import com.example.demo.exception.UserNotFoundException;
@@ -45,19 +47,30 @@ public class UserService {
 
     @Transactional
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
-        User user = userRepository.findById(id).orElseThrow(() ->
+        User targetUser = userRepository.findById(id).orElseThrow(() ->
                 new UserNotFoundException("User not found!"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() ->
+                new UserNotFoundException("User not found!"));
+        checkUserAccess(currentUser, targetUser);
         String normalizedEmail = request.email().trim().toLowerCase(Locale.ROOT);
-        if (!user.getEmail().equals(normalizedEmail)) {
+        if (!targetUser.getEmail().equals(normalizedEmail)) {
             userRepository.findByEmail(normalizedEmail).ifPresent(userSaved -> {
                 throw new UserAlreadyExistsException("Email занят!");
             });
         }
-        user.setName(request.name());
-        user.setEmail(normalizedEmail);
-        user.setPhone(phoneNumberService.normalizePhoneNumber(request.phone()));
-        return userMapper.toResponse(user);
+        targetUser.setName(request.name());
+        targetUser.setEmail(normalizedEmail);
+        targetUser.setPhone(phoneNumberService.normalizePhoneNumber(request.phone()));
+        return userMapper.toResponse(targetUser);
+    }
 
+    private void checkUserAccess(User currentUser, User targetUser ) {
+        if (currentUser.getRole() == UserRole.USER
+                && !currentUser.getId().equals(targetUser.getId())) {
+            throw new AccessDeniedException("Не соответствует id! ");
+        }
     }
 
     @Transactional
@@ -82,9 +95,15 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponse getUser(Long id) {
-        User user = userRepository.findById(id).orElseThrow(() ->
+        User target = userRepository.findById(id).orElseThrow(() ->
                 new UserNotFoundException("User not found!"));
-        return userMapper.toResponse(user);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User currentUser = userRepository.findByEmail(email).orElseThrow(() ->
+                new UserNotFoundException("User not found!"));
+        checkUserAccess(currentUser, target);
+
+        return userMapper.toResponse(target);
     }
 
     @Transactional(readOnly = true)

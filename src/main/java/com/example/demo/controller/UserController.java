@@ -17,6 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
     private final UserService userService;
 
@@ -54,7 +55,7 @@ public class UserController {
         List<UserResponse> userResponseList = userService.getAllByDeals();
         return  ResponseEntity.ok(userResponseList);
     }
-    @SecurityRequirement(name = "bearerAuth")
+
     @PutMapping("/password")
     public ResponseEntity<Void> changePassword(
             @Valid @RequestBody ChangePasswordRequest request) {
