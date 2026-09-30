@@ -1,9 +1,10 @@
 package com.example.demo.security;
 
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-import liquibase.structure.core.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -12,9 +13,9 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+@Slf4j
 @Service
 public class JwtService {
     @Value("${jwt.secret}")
@@ -54,7 +55,7 @@ public class JwtService {
 
     }
 
-   /* public boolean isTokenValid(String jwtToken) {
+    public boolean isTokenValid(String jwtToken) {
         try {
             Jwts.parser()
                     .verifyWith(secretKey)
@@ -63,28 +64,9 @@ public class JwtService {
 
             return true;
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (JwtException e) {
+            log.debug("Invalid JWT: {}", e.getMessage());
             return false;
         }
-    }           */
-   public boolean isTokenValid(String jwtToken) {
-       try {
-           Jwts.parser()
-                   .verifyWith(secretKey)
-                   .build()
-                   .parseSignedClaims(jwtToken);
-
-           System.out.println("JWT VALID");
-
-           return true;
-
-       } catch (Exception e) {
-           System.out.println("JWT INVALID: " + e.getClass().getName());
-           System.out.println("JWT ERROR: " + e.getMessage());
-           e.printStackTrace();
-
-           return false;
-       }
-   }
     }
+}
